@@ -21,37 +21,128 @@ class Spot {
   }
 
   // game logic functions
-  isCheck(this) {
+  isCheck() {
     
+    let ir = [];
+    let ic = [];
+    let b = board;
+    let team = this.team;
     let r = this.r;
     let c = this.c;
 
     // checks if black pawn will make check
-    if (r > 0 && c < 7) {
-      if (b[r-1][c+1].id == "bp") /* up 1 right 1 */ {
-        return true;
+    if (team == "w") {
+      if (r > 0 && c < 7) {
+        if (b[r-1][c+1].id == "bp") /* up 1 right 1 */ {
+          return true;
+        }
       }
-    }
-    if (r > 0 && c > 0) {
-      if (b[r-1][c-1].id == "bp") /* up 1 left 1 */ {
-        return true;
+      if (r > 0 && c > 0) {
+        if (b[r-1][c-1].id == "bp") /* up 1 left 1 */ {
+          return true;
+        }
       }
     }
 
     // checks if white pawn will make check
-    if (r < 7 && c < 7) {
-      if (b[r+1][c+1].id == "wp") /* down 1 right 1 */ {
-        return true;
+    if (team == "b") {
+      if (r < 7 && c < 7) {
+        if (b[r+1][c+1].id == "wp") /* down 1 right 1 */ {
+          return true;
+        }
       }
-    }
-    if (r < 7 && c > 0) {
-      if (b[r+1][c-1].id == "wp") /* down 1 left 1 */ {
-        return true;
+      if (r < 7 && c > 0) {
+        if (b[r+1][c-1].id == "wp") /* down 1 left 1 */ {
+          return true;
+        }
       }
     }
 
     // checks if knight will make check
-    if (b[r+1][r+c].id == `${opp[self.team]}`)
+    ir = [1,2,2,1,-1,-2,-2,-1]; 
+    ic = [2,1,-1,-2,-2,-1,1,2]; // locations to check for pieces relative to the piece
+    for (let i = 0; i < 8;i++) {
+      if (r+ir > 0 && r+ir < 8 && c+ic > 0 && c+ic < 8) {
+        if (b[r+ir][c+ic].id == `${opp[team]}n`) {
+          return true;
+        }
+      }
+    }
+
+    // checks if rook will make check or queen in rook directions
+    if (r < 7) {
+      for (let i = r+1;i < 8;i++) {
+        if (b[i][c].team == team) {
+          break;
+        } else if (b[i][c].team == opp[team]) {
+          if (b[i][c].id == `${opp[team]}r` || b[i][c].id == `${opp[team]}q`) /* right */ {
+            return true;
+          } else {
+            break;
+          }
+        }
+      }
+    }
+    if (c < 7) {
+      for (let i = c+1;i < 8;i++) {
+        if (b[r][i].team == team) {
+          break;
+        } else if (b[r][i].team == opp[team]) {
+          if (b[r][i].id == `${opp[team]}r` || b[r][i].id == `${opp[team]}q`) /* down */ {
+            return true;
+          } else {
+            break;
+          }
+        }
+      }
+    }
+    if (r > 0) {
+      for (let i = r-1;i > 0;i--) {
+        if (b[i][c].team == team) {
+          break;
+        } else if (b[i][c].team == opp[team]) {
+          if (b[i][c].id == `${opp[team]}r` || b[i][c].id == `${opp[team]}q`) /* left */ {
+            return true;
+          } else {
+            break;
+          }
+        }
+      }
+    }
+    if (c > 0) {
+      for (let i = c-1;i > 0;i--) {
+        if (b[r][i].team == team) {
+          break;
+        } else if (b[r][i].team == opp[team]) {
+          if (b[r][i].id == `${opp[team]}r` || b[r][i].id == `${opp[team]}q`) /* up */ {
+            return true;
+          } else {
+            break;
+          }
+        }
+      }
+    }
+
+    // checks if bishop makes check or queen in bishop directions
+    ir = [1,1,-1,-1];
+    ic = [1,-1,-1,1];
+    for (let i = 0;i < 4;i++) {
+      outerloop:
+      for (let j = 0;j < 8 && j > 0;j += ir[i]) {
+        innerloop:
+        for (let k = 0;k < 8 && k > 0;k += ic[i]) {
+          if (b[j][k].team == team) {
+            break outerloop;
+          } else if (b[j][k].team == opp[team]) {
+            if (b[j][k].id == `${opp[team]}b` || b[j][k].id == `${opp[team]}q`) /* up */ {
+              return true;
+            } else {
+              break outerloop;
+            }
+          }
+        }
+      }
+    }
 
     return false;
   } // end of isCheck
@@ -90,6 +181,22 @@ const opp = {
 
 /*-------------------------------------- three js section ---------------------------------------*/
 
+// firebase sdk setup
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+const firebaseConfig = {
+  apiKey: "AIzaSyCCn6J8utFoEoPf2SHKcMXfb5DY6jbysXc",
+  authDomain: "chess-3d-webapp.firebaseapp.com",
+  databaseURL: "https://chess-3d-webapp-default-rtdb.firebaseio.com",
+  projectId: "chess-3d-webapp",
+  storageBucket: "chess-3d-webapp.appspot.com",
+  messagingSenderId: "1073149571702",
+  appId: "1:1073149571702:web:46b347a2bfbbe2d695e557",
+  measurementId: "G-86L9THZL9G"
+};
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
 // threejs imports
 import "./style.css"
 import * as THREE from '/node_modules/three';
@@ -109,7 +216,7 @@ camera.position.z = 5;
 camera.position.y = 2;
 
 // grid helper for development purposes ** remove when done **
-const grid = new THREE.GridHelper(40,40);
+const grid = new THREE.GridHelper(100,10);
 scene.add(grid);
 
 // orbit controls
@@ -128,11 +235,7 @@ scene.add(ambientLight);
 const background_texture = new THREE.TextureLoader().load("white_background.jpeg");
 scene.background = background_texture;
 
-const BoxGeometry = new THREE.BoxGeometry();
-const BoxMaterial = new THREE.MeshStandardMaterial( {color: 0x0000ff} );
-const box = new THREE.Mesh(BoxGeometry, BoxMaterial);
-scene.add(box);
-
+// chess board
 gltfLoader.load("/chess_board/scene.gltf", function(gltf) {
   const model = gltf.scene;
   scene.add(model);
@@ -141,9 +244,8 @@ gltfLoader.load("/chess_board/scene.gltf", function(gltf) {
   console.error(error);
 });
 
+// main loop
 function animate() {
-  box.rotation.x += 0.01;
-  box.rotation.y += 0.01;
   renderer.render(scene, camera);
 }
 
