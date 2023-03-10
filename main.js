@@ -62,8 +62,8 @@ class Spot {
     ir = [1,2,2,1,-1,-2,-2,-1]; 
     ic = [2,1,-1,-2,-2,-1,1,2]; // locations to check for pieces relative to the piece
     for (let i = 0; i < 8;i++) {
-      if (r+ir > 0 && r+ir < 8 && c+ic > 0 && c+ic < 8) {
-        if (b[r+ir][c+ic].id == `${opp[team]}n`) {
+      if (r+ir[i] > 0 && r+ir[i] < 8 && c+ic[i] > 0 && c+ic[i] < 8) {
+        if (b[r+ir[i]][c+ic[i]].id == `${opp[team]}n`) {
           return true;
         }
       }
@@ -128,13 +128,13 @@ class Spot {
     ic = [1,-1,-1,1];
     for (let i = 0;i < 4;i++) {
       outerloop:
-      for (let j = 0;j < 8 && j > 0;j += ir[i]) {
+      for (let j = r;j < 8 && j > 0;j += ir[i]) {
         innerloop:
-        for (let k = 0;k < 8 && k > 0;k += ic[i]) {
+        for (let k = c;k < 8 && k > 0;k += ic[i]) {
           if (b[j][k].team == team) {
             break outerloop;
           } else if (b[j][k].team == opp[team]) {
-            if (b[j][k].id == `${opp[team]}b` || b[j][k].id == `${opp[team]}q`) /* up */ {
+            if (b[j][k].id == `${opp[team]}b` || b[j][k].id == `${opp[team]}q`) {
               return true;
             } else {
               break outerloop;
@@ -144,8 +144,81 @@ class Spot {
       }
     }
 
+    // checks if king will make check
+    ir = [0,1,1,1,0,-1,-1,-1];
+    ic = [1,1,0,-1,-1,-1,0,1];
+    for (let i = 0;i < 8;i++) {
+      if (r+ir[i] > 0 && r+ir[i] < 8 && c+ic[i] > 0 && c+ic[i] < 8) {
+        if (n[r+ir[i]][c+ic[i]].id == `${opp[team]}k`) {
+          return true;
+        }
+      }
+    }
+
     return false;
   } // end of isCheck
+
+  find_moves () {
+
+    let ir = [];
+    let ic = [];
+    let b = board;
+    let team = this.team;
+    let r = this.r;
+    let c = this.c;
+    let moves = [];
+    let piece = this.piece;
+    let id = this.id;
+
+    // finds moves for white pawns
+    if(id == "wp") {
+      if (r == 6 && b[r-2][c].team == "-") /* up 2 at start */ {
+        moves.push([r-2,c]);
+      }
+      if (b[r-1][c].team == "-") /* up 1 */ {
+        moves.push([r-1,c]);
+      }
+      if (b[r-1][c+1].team == opp[team]) /* capture piece up 1 right 1 */ {
+        moves.push([r-1,c+1]);
+      }
+      if (b[r-1][c-1].team == opp[team]) /* capture piece up 1 right 1 */ {
+        moves.push([r-1,c+1]);
+      }
+    }
+
+    // finds moves for black pawns
+    else if(id == "bp") {
+      if (r == 1 && b[r+2][c].team == "-") /* down 2 at start */ {
+        moves.push([r+2,c]);
+      }
+      if (b[r+1][c].team == "-") /* down 1 */ {
+        moves.push([r+1,c]);
+      }
+      if (b[r-1][c+1].team == opp[team]) /* capture piece down 1 right 1 */ {
+        moves.push([r+1,c+1]);
+      }
+      if (b[r-1][c-1].team == opp[team]) /* capture piece down 1 right 1 */ {
+        moves.push([r+1,c+1]);
+      }
+    }
+
+    // finds moves for knights
+    else if (piece == "n") {
+      ir = [1,2,2,1,-1,-2,-2,-1]; 
+      ic = [2,1,-1,-2,-2,-1,1,2];
+      for (let i = 0; i < 8;i++) {
+        if (r+ir[i] > 0 && r+ir[i] < 8 && c+ic[i] > 0 && c+ic[i] < 8) {
+          if (b[r+ir[i]][c+ic[i]].team != team) {
+            moves.push([r+ir[i], c+ic[i]]);
+          }
+        }
+      }
+    }
+
+    console.log(`id: ${id} | location: (${r},${c})`);
+    console.log(moves);
+    return moves;
+  } // end of moves
 }
 var board = [
   // row 0
@@ -162,13 +235,13 @@ var board = [
    new Spot(3,4,"-="), new Spot(3,5,"-="), new Spot(3,6,"-="), new Spot(3,7,"-="),],
   // row 4
   [new Spot(4,0,"-="), new Spot(4,1,"-="), new Spot(4,2,"-="), new Spot(4,3,"-="),
-   new Spot(4,4,"-="), new Spot(4,5,"-="), new Spot(4,6,"-="), new Spot(4,7,"-="),],
+   new Spot(4,4,"wn"), new Spot(4,5,"-="), new Spot(4,6,"-="), new Spot(4,7,"-="),],
   // row 5
   [new Spot(5,0,"-="), new Spot(5,1,"-="), new Spot(5,2,"-="), new Spot(5,3,"-="),
    new Spot(5,4,"-="), new Spot(5,5,"-="), new Spot(5,6,"-="), new Spot(5,7,"-="),],
   // row 6
   [new Spot(6,0,"-="), new Spot(6,1,"-="), new Spot(6,2,"-="), new Spot(6,3,"-="),
-   new Spot(6,4,"-="), new Spot(6,5,"-="), new Spot(6,6,"-="), new Spot(6,7,"-="),],
+   new Spot(6,4,"-="), new Spot(6,5,"-="), new Spot(6,6,"wp"), new Spot(6,7,"-="),],
   // row 7
   [new Spot(7,0,"-="), new Spot(7,1,"-="), new Spot(7,2,"-="), new Spot(7,3,"-="),
    new Spot(7,4,"-="), new Spot(7,5,"-="), new Spot(7,6,"-="), new Spot(7,7,"-="),],
@@ -178,6 +251,9 @@ const opp = {
   "b" : "w",
   "w" : "b",
 }
+
+board[4][4].find_moves();
+board[6][6].find_moves();
 
 /*-------------------------------------- three js section ---------------------------------------*/
 
@@ -210,6 +286,7 @@ const renderer = new THREE.WebGLRenderer({
   canvas: document.querySelector("#bg"),
 });
 
+// starting camera position
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 camera.position.z = 5;
