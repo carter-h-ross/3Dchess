@@ -10,6 +10,39 @@ function degToRad(degrees) {
   return radians;
 }
 
+function log_board(){
+  let result = ``;
+  for (let r = 0; r < 8; r++) {
+    result += `\n|`;
+    for (let c = 0; c < 8; c++) {
+      if (board[r][c].team != "-") {
+        result += `${board[r][c].id}|`;
+      } else {
+        result += `  |`;
+      }      
+    }
+  }
+  console.log(result);
+}
+
+function debug_board(moves) {
+  let result = "";
+  for (let r = 0; r < 8; r++) {
+    result += "\n|";
+    for (let c = 0; c < 8; c++) {
+      for (let i = 0; i < moves.length; i++) {
+        if (moves[i][0] == r && moves[i][1] == c) {
+          result += "*|";
+          break;
+        } else if (i == moves.length - 1) {
+          result += " |";
+        }
+      }
+    }
+  }
+  console.log(result);
+}
+
 // variables used for js game logic
 class Spot {
   constructor(r,c,id) {
@@ -62,7 +95,7 @@ class Spot {
     ir = [1,2,2,1,-1,-2,-2,-1]; 
     ic = [2,1,-1,-2,-2,-1,1,2]; // locations to check for pieces relative to the piece
     for (let i = 0; i < 8;i++) {
-      if (r+ir[i] > 0 && r+ir[i] < 8 && c+ic[i] > 0 && c+ic[i] < 8) {
+      if (r+ir[i] > -1 && r+ir[i] < 8 && c+ic[i] > -1 && c+ic[i] < 8) {
         if (b[r+ir[i]][c+ic[i]].id == `${opp[team]}n`) {
           return true;
         }
@@ -97,7 +130,7 @@ class Spot {
       }
     }
     if (r > 0) {
-      for (let i = r-1;i > 0;i--) {
+      for (let i = r-1;i > -1;i--) {
         if (b[i][c].team == team) {
           break;
         } else if (b[i][c].team == opp[team]) {
@@ -110,7 +143,7 @@ class Spot {
       }
     }
     if (c > 0) {
-      for (let i = c-1;i > 0;i--) {
+      for (let i = c-1;i > -1;i--) {
         if (b[r][i].team == team) {
           break;
         } else if (b[r][i].team == opp[team]) {
@@ -126,21 +159,48 @@ class Spot {
     // checks if bishop makes check or queen in bishop directions
     ir = [1,1,-1,-1];
     ic = [1,-1,-1,1];
-    for (let i = 0;i < 4;i++) {
-      outerloop:
-      for (let j = r;j < 8 && j > 0;j += ir[i]) {
-        innerloop:
-        for (let k = c;k < 8 && k > 0;k += ic[i]) {
-          if (b[j][k].team == team) {
-            break outerloop;
-          } else if (b[j][k].team == opp[team]) {
-            if (b[j][k].id == `${opp[team]}b` || b[j][k].id == `${opp[team]}q`) {
-              return true;
-            } else {
-              break outerloop;
-            }
-          }
-        }
+    for (let i = 1;i < 8;i++) {
+      if (r+i == 8 || c+i == 8) {
+        break;
+      }
+      if (b[r+i][c+i].team == team) {
+        break;
+      }
+      if (b[r+i][c+i].id == `${opp[team]}b` || b[r+i][c+i].id == `${opp[team]}q`) /* down right */ {
+        return true;
+      }
+    }
+    for (let i = 1;i < 8;i++) {
+      if (r+i == 8 || c-i == -1) {
+        break;
+      }
+      if (b[r+i][c-i].team == team) {
+        break;
+      }
+      if (b[r+i][c-i].id == `${opp[team]}b` || b[r+i][c-i].id == `${opp[team]}q`) /* down left */ {
+        return true;
+      } 
+    }
+    for (let i = 1;i < 8;i++) {
+      if (r-i == -1 || c-i == -1) {
+        break;
+      }
+      if (b[r-i][c-i].team == team) {
+        break;
+      }
+      if (b[r-i][c-i].id == `${opp[team]}b` || b[r-i][c-i].id == `${opp[team]}q`) /* up left */ {
+        return true;
+      }
+    }
+    for (let i = 1;i < 8;i++) {
+      if (r-i == -1 || c+i == 8) {
+        break;
+      }
+      if (b[r-i][c+i].team == team) {
+        break;
+      }
+      if (b[r-i][c+i].id == `${opp[team]}b` || b[r-i][c+i].id == `${opp[team]}q`) /* up right */ {
+        return true;
       }
     }
 
@@ -187,7 +247,7 @@ class Spot {
     }
 
     // finds moves for black pawns
-    else if(id == "bp") {
+    if(id == "bp") {
       if (r == 1 && b[r+2][c].team == "-") /* down 2 at start */ {
         moves.push([r+2,c]);
       }
@@ -203,11 +263,11 @@ class Spot {
     }
 
     // finds moves for knights
-    else if (piece == "n") {
+    if (piece == "n") {
       ir = [1,2,2,1,-1,-2,-2,-1]; 
       ic = [2,1,-1,-2,-2,-1,1,2];
       for (let i = 0; i < 8;i++) {
-        if (r+ir[i] > 0 && r+ir[i] < 8 && c+ic[i] > 0 && c+ic[i] < 8) {
+        if (r+ir[i] > -1 && r+ir[i] < 8 && c+ic[i] > -1 && c+ic[i] < 8) {
           if (b[r+ir[i]][c+ic[i]].team != team) {
             moves.push([r+ir[i], c+ic[i]]);
           }
@@ -215,8 +275,140 @@ class Spot {
       }
     }
 
+    // finds moves for rooks an queen in rook directions
+    if (piece == "r" || piece == "q") {
+      if (r < 7) {
+        for (let i = r+1;i < 8;i++) {
+          if (b[i][c].team == team) {
+            break;
+          } else {
+            moves.push([i,c]);
+            if (b[i][c].team == opp[team]) {
+              break;
+            }
+          }
+        }
+      }
+      if (c < 7) {
+        for (let i = c+1;i < 8;i++) {
+          if (b[r][i].team == team) {
+            break;
+          } else {
+            moves.push([r,i]);
+            if (b[r][i].team == opp[team]) {
+              break;
+            }
+          }
+        }
+      }
+      if (r > 0) {
+        for (let i = r-1;i > -1;i--) {
+          if (b[i][c].team == team) {
+            break;
+          } else {
+            moves.push([i,c]);
+            if (b[i][c].team == opp[team]) {
+              break;
+            }
+          }
+        }
+      }
+      if (c > 0) {
+        for (let i = c-1;i > -1;i--) {
+          if (b[r][i].team == team) {
+            break;
+          } else {
+            moves.push([r,i]);
+            if (b[r][i].team == opp[team]) {
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    // finds move for bishops and queens in queen directions
+    if (piece == "b" || piece == "q") {
+      for (let i = 1;i < 8;i++) {
+        if (r+i == 8 || c+i == 8) {
+          break;
+        }
+        if (b[r+i][c+i].team == "-") {
+          moves.push([r+i, c+i]);
+        } else {
+          if (b[r+i][c+i].team == team) /* down right */ {
+            break;
+          } else {
+            moves.push([r+i, c+i]);
+            break;
+          }
+        } 
+      }
+      for (let i = 1;i < 8;i++) {
+        if (r+i == 8 || c-i == -1) {
+          break;
+        }
+        if (b[r+i][c-i].team == "-") {
+          moves.push([r+i, c-i]);
+        } else {
+          if (b[r+i][c-i].team == team) /* down left */ {
+            break;
+          } else {
+            moves.push([r+i, c-i]);
+            break;
+          }
+        } 
+      }
+      for (let i = 1;i < 8;i++) {
+        if (r-i == -1 || c-i == -1) {
+          break;
+        }
+        if (b[r-i][c-i].team == "-") {
+          moves.push([r-i, c-i]);
+        } else {
+          if (b[r-i][c-i].team == team) /* up left */ {
+            break;
+          } else {
+            moves.push([r-i, c-i]);
+            break;
+          }
+        } 
+      }
+      for (let i = 1;i < 8;i++) {
+        if (r-i == -1 || c+i == 8) {
+          break;
+        }
+        if (b[r-i][c+i].team == "-") {
+          moves.push([r-i, c+i]);
+        } else {
+          if (b[r-i][c+i].team == team) /* up right */ {
+            break;
+          } else {
+            moves.push([r-i, c+i]);
+            break;
+          }
+        } 
+      }
+    }
+
+    // checks for moves king can make
+    if (piece == "k") {
+      ir = [0,1,1,1,0,-1,-1,-1];
+      ic = [1,1,0,-1,-1,-1,0,1];
+      for (let i = 0;i < 8;i++) {
+        if (r+ir[i] > -1 && r+ir[i] < 8 && c+ic[i] > -1 && c+ic[i] < 8) {
+          if (!(n[r+ir[i]][c+ic[i]].isCheck())) {
+            moves.push([r+ir[i],c+ic[i]]);
+          }
+        }
+      }
+    }
+
+    log_board();
     console.log(`id: ${id} | location: (${r},${c})`);
     console.log(moves);
+    debug_board(moves);
+    console.log("<-------------------------------------------------------------------------->");
     return moves;
   } // end of moves
 }
@@ -229,10 +421,10 @@ var board = [
    new Spot(1,4,"-="), new Spot(1,5,"-="), new Spot(1,6,"-="), new Spot(1,7,"-="),],
   // row 2
   [new Spot(2,0,"-="), new Spot(2,1,"-="), new Spot(2,2,"-="), new Spot(2,3,"-="),
-   new Spot(2,4,"-="), new Spot(2,5,"-="), new Spot(2,6,"-="), new Spot(2,7,"-="),],
+   new Spot(2,4,"-="), new Spot(2,5,"-="), new Spot(2,6,"wr"), new Spot(2,7,"-="),],
   // row 3
   [new Spot(3,0,"-="), new Spot(3,1,"-="), new Spot(3,2,"-="), new Spot(3,3,"-="),
-   new Spot(3,4,"-="), new Spot(3,5,"-="), new Spot(3,6,"-="), new Spot(3,7,"-="),],
+   new Spot(3,4,"bb"), new Spot(3,5,"-="), new Spot(3,6,"-="), new Spot(3,7,"-="),],
   // row 4
   [new Spot(4,0,"-="), new Spot(4,1,"-="), new Spot(4,2,"-="), new Spot(4,3,"-="),
    new Spot(4,4,"wn"), new Spot(4,5,"-="), new Spot(4,6,"-="), new Spot(4,7,"-="),],
@@ -240,7 +432,7 @@ var board = [
   [new Spot(5,0,"-="), new Spot(5,1,"-="), new Spot(5,2,"-="), new Spot(5,3,"-="),
    new Spot(5,4,"-="), new Spot(5,5,"-="), new Spot(5,6,"-="), new Spot(5,7,"-="),],
   // row 6
-  [new Spot(6,0,"-="), new Spot(6,1,"-="), new Spot(6,2,"-="), new Spot(6,3,"-="),
+  [new Spot(6,0,"-="), new Spot(6,1,"-="), new Spot(6,2,"br"), new Spot(6,3,"-="),
    new Spot(6,4,"-="), new Spot(6,5,"-="), new Spot(6,6,"wp"), new Spot(6,7,"-="),],
   // row 7
   [new Spot(7,0,"-="), new Spot(7,1,"-="), new Spot(7,2,"-="), new Spot(7,3,"-="),
@@ -254,6 +446,9 @@ const opp = {
 
 board[4][4].find_moves();
 board[6][6].find_moves();
+board[2][6].find_moves();
+board[6][2].find_moves();
+board[3][4].find_moves();
 
 /*-------------------------------------- three js section ---------------------------------------*/
 
