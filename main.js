@@ -25,6 +25,42 @@ function log_board(){
   console.log(result);
 }
 
+function encode_board() {
+  let result = "";
+
+  let counter = 0;
+  let empty = false;
+  outerloop:
+  for (let r = 0; r < 8; r++) {
+    inerloop:
+    for (let c = 0; c < 8; c++) {
+      if (r > 7 && c > 7) {
+        break outerloop;
+      }
+      if (board[r][c].team != "-") {
+        if (empty) {
+          result += `${counter}`;
+          counter = 0;
+          empty = false;
+        }
+        result += board[r][c].id;
+      } else {
+        counter++;
+        empty = true;
+      }
+    }
+  }
+
+  console.log(result);
+  return result;
+}
+
+function decode_board(code) {
+  let result = [[]];
+
+  return result;
+}
+
 function debug_board(moves) {
   let result = "";
   for (let r = 0; r < 8; r++) {
@@ -449,12 +485,15 @@ board[6][6].find_moves();
 board[2][6].find_moves();
 board[6][2].find_moves();
 board[3][4].find_moves();
+encode_board();
 
 /*-------------------------------------- three js section ---------------------------------------*/
 
 // firebase sdk setup
+// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
+
 const firebaseConfig = {
   apiKey: "AIzaSyCCn6J8utFoEoPf2SHKcMXfb5DY6jbysXc",
   authDomain: "chess-3d-webapp.firebaseapp.com",
@@ -465,6 +504,8 @@ const firebaseConfig = {
   appId: "1:1073149571702:web:46b347a2bfbbe2d695e557",
   measurementId: "G-86L9THZL9G"
 };
+
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 
